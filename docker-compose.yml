@@ -1,0 +1,83 @@
+name: php_proj
+
+services:
+  db:
+    image: mysql:8.0.39
+    container_name: db
+    build:
+      context: .
+      dockerfile: ./build/mysql-8/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./volumes/dbvol:/var/lib/mysql
+    secrets:
+      - mysql_db_pass
+      - mysql_root_pass
+    env_file:
+      - ./env/mysql.env
+    networks:
+      - dev_PHP
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+  app:
+    image: php:8.3-fpm
+    container_name: php-app
+    build:
+      context: .
+      dockerfile: ./build/php-8.3-fpm/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./src:/var/www/html
+    env_file:
+      - ./env/app.env
+    secrets:
+      - mysql_db_pass
+    networks:
+      - dev_PHP
+
+  web:
+    image: nginx:latest
+    container_name: web
+    build:
+      context: .
+      dockerfile: ./build/nginx-latest/Dockerfile
+    restart: unless-stopped
+    ports:
+      - 8080:80
+    depends_on:
+      app:
+        condition: service_started
+    networks:
+      - dev_PHP
+
+  phpmyadm:
+    image: phpmyadmin:latest
+    container_name: phpmyadm
+    build:
+      context: .
+      dockerfile: ./build/phpmyadmin-latest/Dockerfile
+    restart: unless-stopped
+    secrets:
+      - mysql_root_pass
+    env_file:
+      - ./env/phpmyadmin.env
+    ports:
+      - "8081:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - dev_PHP
+
+secrets:
+  mysql_db_pass:
+    file: ./secrets/mysql_db_pass
+  mysql_root_pass:
+    file: ./secrets/mysql_root_pass
+networks:
+  dev_PHP:
+    driver: bridge
