@@ -10,11 +10,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./volumes/dbvol:/var/lib/mysql
-    secrets:
-      - mysql_db_pass
-      - mysql_root_pass
     env_file:
-      - ./env/mysql.env
+      - .env
     networks:
       - dev_PHP
     healthcheck:
@@ -33,9 +30,7 @@ services:
     volumes:
       - ./src:/var/www/html
     env_file:
-      - ./env/app.env
-    secrets:
-      - mysql_db_pass
+      - .env
     networks:
       - dev_PHP
 
@@ -61,10 +56,8 @@ services:
       context: .
       dockerfile: ./build/phpmyadmin-latest/Dockerfile
     restart: unless-stopped
-    secrets:
-      - mysql_root_pass
     env_file:
-      - ./env/phpmyadmin.env
+      - .env
     ports:
       - "8081:80"
     depends_on:
@@ -73,11 +66,6 @@ services:
     networks:
       - dev_PHP
 
-secrets:
-  mysql_db_pass:
-    file: ./secrets/mysql_db_pass
-  mysql_root_pass:
-    file: ./secrets/mysql_root_pass
 networks:
   dev_PHP:
     driver: bridge

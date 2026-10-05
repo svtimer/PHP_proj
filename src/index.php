@@ -4,30 +4,13 @@ declare(strict_types=1);
 session_start();
 
 /* ---------- Config ---------- */
-// Non-secret values come from the env file (env_file in docker-compose),
-// the password is read from the Docker secret file pointed to by DB_PASS_FILE.
-function cfg(string $key): string
-{
-    $file = getenv($key . '_FILE');
-    if ($file !== false && $file !== '') {
-        $value = @file_get_contents($file);
-        if ($value === false) {
-            throw new RuntimeException("Cannot read secret file for $key: $file");
-        }
-        return rtrim($value, "\r\n"); // strip only the trailing newline
-    }
-    $value = getenv($key);
-    if ($value === false || $value === '') {
-        throw new RuntimeException("Config value $key is not set");
-    }
-    return $value;
-}
+// Values come from the .env file (env_file in docker-compose),
 
+define('DB_HOST', $DB_HOST = getenv('DB_HOST'));
+define('DB_NAME', $DB_NAME = getenv('DB_NAME'));
+define('DB_USER', $DB_USER = getenv('DB_USER'));
+define('DB_PASS', $DB_PASS = getenv('DB_PASS'));
 
-define('DB_HOST', cfg('DB_HOST'));
-define('DB_NAME', cfg('DB_NAME'));
-define('DB_USER', cfg('DB_USER'));
-define('DB_PASS', cfg('DB_PASS'));
 const LOG_TABLE = 'action_log';
 
 function h(mixed $s): string
