@@ -4,9 +4,9 @@ This project is a PHP application running in a Docker-based development environm
 
 ## Docker Images are used:
 - [mysql:8](https://hub.docker.com/_/mysql)
-- [nginx:latest](https://hub.docker.com/_/nginx)
+- [nginx:1.31.6-trixie](https://hub.docker.com/_/nginx)
 - [php:8.3-fpm](https://hub.docker.com/_/php)
-- [phpmyadmin:latest](https://hub.docker.com/_/phpmyadmin)
+- [phpmyadmin-5.2.3](https://hub.docker.com/_/phpmyadmin)
 
 php:8.3-fpm also includes: composer, git, unzip, php-xdebug, pdo_mysql.
 
@@ -16,16 +16,13 @@ php:8.3-fpm also includes: composer, git, unzip, php-xdebug, pdo_mysql.
 .
 ├── build/                   # Docker files | application image definition
     ├── mysql-8
-    ├── nginx-latest
+    ├── nginx-1.31.6-trixie
     ├── php-8.3-fpm
-    ├── phpmyadmin-latest       
+    ├── phpmyadmin-5.2.3      
 ├── etc/                    # Configuration files
-├── env/                    # Environment definitions
+├── .env.example            # Example of environment definitions
 ├── src/                    # Application source code
     └── index.php           # Application entry point
-├── secrets/                # Sensitive data storage
-├── volumes/                # Data storages
-    ├── dbvol/              # Mysql database storage
 ├── docker-compose.yml      # Local services and configuration
 └── README.md
 ```
@@ -45,10 +42,6 @@ Clone the repository and open the project directory:
 git clone https://github.com/svtimer/PHP_proj
 cd PHP_proj
 ```
-Create files with passwords:
-
-- ./secrets/mysql_db_pass
-- ./secrets/mysql_root_pass
 
 Build and start the containers:
 
@@ -79,7 +72,7 @@ docker-compose build --no-cache
 
 ## Configuration
 
-Use a local `.env` file for environment variables and never commit secrets or credentials.  Update the port mapping in `docker-compose.yml` if port `8080` is already in use.
+Create and edit a local `.env` file in project directory for environment variables and never commit secrets or credentials.  Update the port mapping in `docker-compose.yml` if port `8080` is already in use.
 
 ## Development
 
