@@ -1,0 +1,14 @@
+name: shared-infra
+services:
+  redis:
+    image: redis:8.10.2-trixie
+    container_name: redis
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - shared-services-network
+networks:
+  shared-services-network:
+    name: shared-services-network
+    driver: bridge

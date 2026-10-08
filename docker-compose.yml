@@ -1,5 +1,4 @@
 name: php_proj
-
 services:
   db:
     image: mysql:8.0.39
@@ -11,7 +10,7 @@ services:
     env_file:
       - .env
     networks:
-      - dev_PHP
+      - app-net
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent" ]
       interval: 5s
@@ -30,7 +29,8 @@ services:
     env_file:
       - .env
     networks:
-      - dev_PHP
+      - app-net
+      - shared-services-network
 
   web:
     image: nginx:1.31.6-trixie
@@ -45,7 +45,7 @@ services:
       app:
         condition: service_started
     networks:
-      - dev_PHP
+      - app-net
 
   phpmyadm:
     image: phpmyadmin:5.2.3
@@ -62,8 +62,10 @@ services:
       db:
         condition: service_healthy
     networks:
-      - dev_PHP
+      - app-net
 
 networks:
-  dev_PHP:
+  app-net:
     driver: bridge
+  shared-services-network:
+    external: true

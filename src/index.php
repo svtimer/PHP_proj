@@ -455,6 +455,24 @@ function tableOptions(array $tables, string $selected): void
                 </div>
             <?php endif; ?>
         <?php endif; ?>
+        <div class="muted">
+            <?php $redisHost = getenv('REDIS_HOST') ?: 'redis';
+            $redisPort = (int)(getenv('REDIS_PORT') ?: 6379);
+            if (!extension_loaded('redis')) {
+                echo 'Redis extension is not installed or enabled.';
+            } else {
+                try {
+                    $redis = new Redis();
+                    $redis->connect($redisHost, $redisPort);
+                    $views = $redis->incr('page_views_count');
+                    echo "Saccesfully connection to Redis through external network!<br>";
+                    echo "Count of page views: " . $views;
+                } catch (Throwable $e) {
+                    echo "Error connection to redis: " . $e->getMessage();
+                }
+            } ?>
+        </div>
+
 
         <div class="grid">
             <form class="card" method="post">

@@ -7,23 +7,30 @@ This project is a PHP application running in a Docker-based development environm
 - [nginx:1.31.6-trixie](https://hub.docker.com/_/nginx)
 - [php:8.3-fpm](https://hub.docker.com/_/php)
 - [phpmyadmin-5.2.3](https://hub.docker.com/_/phpmyadmin)
+- [redis:redis:8.10.2-trixie](https://hub.docker.com/_/redis)
 
-php:8.3-fpm also includes: composer, git, unzip, php-xdebug, pdo_mysql.
+
+
+Note: redis runs separatly as shared service and connects to redis occurs via external network.
+
+php:8.3-fpm also includes: composer, git, unzip, php-xdebug, pdo_mysql, redis extension.
+
 
 ## Project Structure
 
 ```text
 .
-├── build/                   # Docker files | application image definition
+├── build/                                  # Docker files | application image definition
     ├── mysql-8
     ├── nginx-1.31.6-trixie
     ├── php-8.3-fpm
     ├── phpmyadmin-5.2.3      
-├── etc/                    # Configuration files
-├── .env.example            # Example of environment definitions
-├── src/                    # Application source code
-    └── index.php           # Application entry point
-├── docker-compose.yml      # Local services and configuration
+├── etc/                                    # Configuration files
+├── .env.example                            # Example of environment definitions
+├── src/                                    # Application source code
+    └── index.php                           # Application entry point
+├── docker-compose.yml                      # Local services and configuration
+├── docker-compose.shared-infra.yml         # Shared services and configuration
 └── README.md
 ```
 
@@ -43,10 +50,10 @@ git clone https://github.com/svtimer/PHP_proj
 cd PHP_proj
 ```
 
-Build and start the containers:
+Build and start the containers in the background:
 
 ```bash
-docker-compose up --build
+docker-compose -f docker-compose.shared-infra.yml up -d --build && docker-compose up -d --build
 ```
 
 Open the application at [http://localhost:8080](http://localhost:8080). If the project exposes a different port, use the port defined in `docker-compose.yml`.
@@ -55,19 +62,25 @@ Open the application at [http://localhost:8080](http://localhost:8080). If the p
 
 ```bash
 # Start services in the background
-docker-compose up -d
+docker-compose -f docker-compose.shared-infra.yml up -d && docker-compose up -d
 
+# Start only app`s containers in the background
+docker-compose up -d
+ 
 # View service logs
 docker-compose logs -f
 
 # Open a shell in the application container
 docker-compose exec app sh
 
-# Stop and remove containers
+# Stop and remove app containers
 docker-compose down
 
+# Stop and remove all containers
+docker-compose  down && docker-compose -f docker-compose.shared-infra.yml down
+
 # Rebuild images without using the cache
-docker-compose build --no-cache
+docker-compose -f docker-compose.shared-infra.yml build --no-cache && docker-compose build --no-cache
 ```
 
 ## Configuration
@@ -79,11 +92,11 @@ Create and edit a local `.env` file in project directory for environment variabl
 Application files can be mounted into the container for live development from src/. After changing the `Dockerfile` or installed dependencies, rebuild the image:
 
 ```bash
-docker-compose up --build
+docker-compose -f docker-compose.shared-infra.yml up -d --build && docker-compose up -d --build
 ```
 
-To remove containers and associated volumes, use the following command:
+To remove containers, images, associated volumes and networks, use the following command:
 
 ```bash
-docker-compose down -v
+docker-compose  down -v --rmi all && docker-compose -f docker-compose.shared-infra.yml down -v --rmi all 
 ```
