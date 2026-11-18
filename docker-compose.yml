@@ -1,0 +1,74 @@
+name: php_proj
+
+services:
+  db:
+    image: mysql:8.0.39
+    container_name: db
+    build:
+      context: .
+      dockerfile: ./build/mysql-8/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - app-net
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+  app:
+    image: php:8.3.12-fpm-alpine3.20
+    container_name: php-app
+    build:
+      context: .
+      dockerfile: ./build/php-8.3-fpm/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./src:/var/www/html
+    env_file:
+      - .env
+    networks:
+      - app-net
+      - shared-services-network
+
+  web:
+    image: httpd:2.4.69-alpine3.24
+    container_name: web
+    build:
+      context: .
+      dockerfile: ./build/httpd-2.4-alpine/Dockerfile
+    restart: unless-stopped
+    ports:
+      - 8080:80
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      app:
+        condition: service_started
+    networks:
+      - app-net
+
+  phpmyadm:
+    image: phpmyadmin:5.2.3-apache
+    container_name: phpmyadm
+    build:
+      context: .
+      dockerfile: ./build/phpmyadmin-5.2.3-apache/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8081:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
+  shared-services-network:
+    external: true
